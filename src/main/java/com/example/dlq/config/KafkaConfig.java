@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.transaction.KafkaTransactionManager;
@@ -49,27 +50,42 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic mainTopic() {
-        return new NewTopic(mainTopic, 3, (short) 1);
+        return TopicBuilder.name(mainTopic)
+                .partitions(3)
+                .replicas(1)
+                .build();
     }
 
     @Bean
     public NewTopic retry5sTopic() {
-        return new NewTopic(retry5sTopic, 3, (short) 1);
+        return TopicBuilder.name(retry5sTopic)
+                .partitions(3)
+                .replicas(1)
+                .build();
     }
 
     @Bean
     public NewTopic retry30sTopic() {
-        return new NewTopic(retry30sTopic, 3, (short) 1);
+        return TopicBuilder.name(retry30sTopic)
+                .partitions(3)
+                .replicas(1)
+                .build();
     }
 
     @Bean
     public NewTopic retry5mTopic() {
-        return new NewTopic(retry5mTopic, 3, (short) 1);
+        return TopicBuilder.name(retry5mTopic)
+                .partitions(3)
+                .replicas(1)
+                .build();
     }
 
     @Bean
     public NewTopic dlqTopic() {
-        return new NewTopic(dlqTopic, 3, (short) 1);
+        return TopicBuilder.name(dlqTopic)
+                .partitions(3)
+                .replicas(1)
+                .build();
     }
 
     @Bean

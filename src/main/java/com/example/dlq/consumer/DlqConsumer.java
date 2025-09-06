@@ -13,6 +13,8 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Component
 public class DlqConsumer {
 
@@ -46,7 +48,9 @@ public class DlqConsumer {
             int retryCount = RetryHeaders.getRetryCount(record.headers());
             Instant firstSeenTs = RetryHeaders.getFirstSeenTimestamp(record.headers());
             String lastError = RetryHeaders.getLastError(record.headers());
-            String stacktrace = new String(record.headers().lastHeader(RetryHeaders.STACKTRACE)?.value() ?? new byte[0]);
+            byte[] stacktraceBytes = record.headers().lastHeader(RetryHeaders.STACKTRACE) != null ? 
+                record.headers().lastHeader(RetryHeaders.STACKTRACE).value() : new byte[0];
+            String stacktrace = new String(stacktraceBytes);
 
             // Create and save DLQ message entity
             DlqMessage dlqMessage = new DlqMessage(

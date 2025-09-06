@@ -1,6 +1,7 @@
 package com.example.dlq.service;
 
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,18 +19,25 @@ public class MetricsService {
     private final Timer orderProcessingTimer;
     private final Counter errorCounter;
 
-    public MetricsService(Counter orderProcessedCounter,
-                         Counter orderRetryCounter,
-                         Counter orderDlqCounter,
-                         Counter orderRequeuedCounter,
-                         Timer orderProcessingTimer,
-                         Counter errorCounter) {
-        this.orderProcessedCounter = orderProcessedCounter;
-        this.orderRetryCounter = orderRetryCounter;
-        this.orderDlqCounter = orderDlqCounter;
-        this.orderRequeuedCounter = orderRequeuedCounter;
-        this.orderProcessingTimer = orderProcessingTimer;
-        this.errorCounter = errorCounter;
+    public MetricsService(MeterRegistry meterRegistry) {
+        this.orderProcessedCounter = Counter.builder("orders.processed")
+                .description("Number of orders processed successfully")
+                .register(meterRegistry);
+        this.orderRetryCounter = Counter.builder("orders.retry")
+                .description("Number of orders sent to retry")
+                .register(meterRegistry);
+        this.orderDlqCounter = Counter.builder("orders.dlq")
+                .description("Number of orders sent to DLQ")
+                .register(meterRegistry);
+        this.orderRequeuedCounter = Counter.builder("orders.requeued")
+                .description("Number of orders requeued from DLQ")
+                .register(meterRegistry);
+        this.orderProcessingTimer = Timer.builder("orders.processing.time")
+                .description("Time taken to process orders")
+                .register(meterRegistry);
+        this.errorCounter = Counter.builder("orders.errors")
+                .description("Number of processing errors")
+                .register(meterRegistry);
     }
 
     public void recordOrderProcessed() {

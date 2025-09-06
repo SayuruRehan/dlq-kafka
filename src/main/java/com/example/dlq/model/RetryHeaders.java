@@ -61,19 +61,18 @@ public class RetryHeaders {
 
     private static Optional<String> getHeaderAsString(Headers headers, String key) {
         if (headers == null) return Optional.empty();
-        byte[] value = headers.lastHeader(key)?.value();
+        var header = headers.lastHeader(key);
+        byte[] value = header != null ? header.value() : null;
         return value != null ? Optional.of(new String(value)) : Optional.empty();
     }
 
     private static Optional<Integer> getHeaderAsInt(Headers headers, String key) {
         return getHeaderAsString(headers, key)
-                .map(Integer::parseInt)
-                .or(() -> Optional.empty());
+                .map(Integer::parseInt);
     }
 
     private static Optional<Long> getHeaderAsLong(Headers headers, String key) {
         return getHeaderAsString(headers, key)
-                .map(Long::parseLong)
-                .or(() -> Optional.empty());
+                .map(Long::parseLong);
     }
 }

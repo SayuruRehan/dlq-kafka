@@ -166,7 +166,7 @@ public class RetryService {
         switch (retryCount) {
             case 1: return Instant.now().plusSeconds(5);
             case 2: return Instant.now().plusSeconds(30);
-            case 3: return Instant.now().plusMinutes(5);
+            case 3: return Instant.now().plusSeconds(300); // 5 minutes = 300 seconds
             default: return Instant.now();
         }
     }

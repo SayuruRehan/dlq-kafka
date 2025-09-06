@@ -59,7 +59,7 @@ class OrderProcessingIntegrationTest {
         OrderEvent orderEvent = new OrderEvent(
             "invalid-test-order",
             "customer-123",
-            OrderEvent.OrderStatus.PENDING,
+            com.example.dlq.model.OrderStatus.PENDING,
             Instant.now(),
             "product-456",
             2,
