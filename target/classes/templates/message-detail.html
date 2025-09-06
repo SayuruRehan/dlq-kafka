@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLQ Message Detail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .json-content { 
+            background-color: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            border-radius: 0.375rem; 
+            padding: 1rem; 
+            font-family: monospace; 
+            white-space: pre-wrap; 
+            max-height: 400px; 
+            overflow-y: auto; 
+        }
+        .stacktrace { 
+            background-color: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            border-radius: 0.375rem; 
+            padding: 1rem; 
+            font-family: monospace; 
+            font-size: 0.8em; 
+            white-space: pre-wrap; 
+            max-height: 300px; 
+            overflow-y: auto; 
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-exclamation-triangle"></i> DLQ Message Detail
+            </span>
+            <a href="/dlq" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4" th:if="${message}">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Message Details</h5>
+                        <div>
+                            <form th:action="@{/dlq/{id}/requeue(id=${message.id})}" 
+                                  method="post" 
+                                  style="display: inline-block;"
+                                  th:if="${message.requeuedCount < 3}">
+                                <button type="submit" 
+                                        class="btn btn-success"
+                                        onclick="return confirm('Are you sure you want to requeue this message?')">
+                                    <i class="fas fa-redo"></i> Requeue Message
+                                </button>
+                            </form>
+                            <form th:action="@{/dlq/{id}/delete(id=${message.id})}" 
+                                  method="post" 
+                                  style="display: inline-block;">
+                                <button type="submit" 
+                                        class="btn btn-danger"
+                                        onclick="return confirm('Are you sure you want to delete this message?')">
+                                    <i class="fas fa-trash"></i> Delete Message
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Basic Information</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>ID:</strong></td>
+                                        <td th:text="${message.id}">1</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Message Key:</strong></td>
+                                        <td th:text="${message.messageKey}">order-123</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Original Topic:</strong></td>
+                                        <td th:text="${message.originalTopic}">orders.v1</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Original Partition:</strong></td>
+                                        <td th:text="${message.originalPartition}">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Original Offset:</strong></td>
+                                        <td th:text="${message.originalOffset}">12345</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Retry Count:</strong></td>
+                                        <td>
+                                            <span class="badge bg-warning" th:text="${message.retryCount}">3</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Created At:</strong></td>
+                                        <td th:text="${#temporals.format(message.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01 12:00:00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>First Seen:</strong></td>
+                                        <td th:text="${#temporals.format(message.firstSeenTs, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01 12:00:00</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Requeue Information</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Requeued Count:</strong></td>
+                                        <td>
+                                            <span class="badge bg-info" th:text="${message.requeuedCount}">0</span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${message.requeuedBy}">
+                                        <td><strong>Last Requeued By:</strong></td>
+                                        <td th:text="${message.requeuedBy}">admin</td>
+                                    </tr>
+                                    <tr th:if="${message.requeuedAt}">
+                                        <td><strong>Last Requeued At:</strong></td>
+                                        <td th:text="${#temporals.format(message.requeuedAt, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01 12:00:00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Can Requeue:</strong></td>
+                                        <td>
+                                            <span th:if="${message.requeuedCount < 3}" class="badge bg-success">Yes</span>
+                                            <span th:unless="${message.requeuedCount < 3}" class="badge bg-danger">No (Max reached)</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <h6>Error Information</h6>
+                                <div class="mb-3">
+                                    <label class="form-label"><strong>Last Error:</strong></label>
+                                    <div class="alert alert-danger" th:text="${message.lastError}">Error message</div>
+                                </div>
+                                
+                                <div class="mb-3" th:if="${message.stacktrace}">
+                                    <label class="form-label"><strong>Stack Trace:</strong></label>
+                                    <div class="stacktrace" th:text="${message.stacktrace}">Stack trace</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <h6>Message Content</h6>
+                                <div class="json-content" th:text="${message.messageValue}">Message content</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-4" th:unless="${message}">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> Message not found.
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

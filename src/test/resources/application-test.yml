@@ -1,0 +1,36 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: test-consumer-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    producer:
+      acks: all
+      retries: 3
+      enable-idempotence: true
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+kafka:
+  topics:
+    main: test-orders.v1
+    retry-5s: test-orders.v1.retry.5s
+    retry-30s: test-orders.v1.retry.30s
+    retry-5m: test-orders.v1.retry.5m
+    dlq: test-orders.v1.dlq
+
+retry:
+  max-attempts: 2
+
+logging:
+  level:
+    com.example.dlq: DEBUG
+    org.springframework.kafka: INFO

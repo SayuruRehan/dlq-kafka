@@ -1,0 +1,75 @@
+spring:
+  application:
+    name: dlq-kafka-consumer
+  
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: orders-consumer-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      isolation-level: read_committed
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      enable-idempotence: true
+      transaction-id-prefix: orders-tx-
+    listener:
+      ack-mode: manual_immediate
+      concurrency: 3
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  h2:
+    console:
+      enabled: true
+
+# Topics configuration
+kafka:
+  topics:
+    main: orders.v1
+    retry-5s: orders.v1.retry.5s
+    retry-30s: orders.v1.retry.30s
+    retry-5m: orders.v1.retry.5m
+    dlq: orders.v1.dlq
+
+# Retry configuration
+retry:
+  max-attempts: 3
+  delays:
+    - 5s
+    - 30s
+    - 5m
+
+# Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.example.dlq: DEBUG
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN
